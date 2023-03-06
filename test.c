@@ -1355,7 +1355,7 @@ void sleep(int n, int sms)
 	int i, ip;
 	ulong sh, sl, l, h, t;
 
-	if (0/*v->rdtsc*/) {
+	if (v->rdtsc) {
 		ip = 0;
 		/* save the starting time */
 		asm __volatile__(
@@ -1417,24 +1417,23 @@ void sleep(int n, int sms)
 
 void beep(unsigned int frequency)
 {
-	unsigned int count = 307200 / frequency;
+	unsigned int count = 1193180 / frequency;
 
 	// TODO FM TOWNS
 	// Switch on the speaker
 	outb_p(inb_p(0x60) | 0x04, 0x60); 
 
 	// Set command for counter 2, 2 byte write
-	outb_p(0xB6, 0x43);
+	outb_p(0xB6, 0x46);
 
 	// Select desired Hz
-	outb_p(count & 0xff, 0x42);
-	outb((count >> 8) & 0xff, 0x42);
+	outb_p(count & 0xff, 0x44);
+	outb((count >> 8) & 0xff, 0x44);
 
 	// Block for 100 microseconds
 	sleep(100, 1);
 
 	// Switch off the speaker
 	outb_p(inb_p(0x60) & 0xFB, 0x60); 
-	*p = 0;
 }
 

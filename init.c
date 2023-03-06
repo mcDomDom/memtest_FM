@@ -175,6 +175,7 @@ void init(void)
 	// v->printmode=PRINTMODE_SUMMARY;
 	v->printmode=PRINTMODE_ADDRESSES;
 	v->numpatn=0;
+
 }
 
 #define FLAT 0
@@ -1232,28 +1233,29 @@ static void cacheable(void)
 /* #define TICKS (65536 - 12752) */
 /* #define TICKS (65536 - 8271) */
 //#define TICKS	59659			/* Program counter to 50 ms = 59659 clks */
-#define TICKS	15360			/* Program counter to 50 ms = 15360 clks FM TOWNS 307.2KHz */
+#define TICKS	61440			/* Program counter to 200 ms = 61440 clks FM TOWNS 307.2KHz */
 
 /* Returns CPU clock in khz */
 static int cpuspeed(void)
 {
-	int loops;
+	long loops;
 	v->clks_msec = -1;
-	return v->clks_msec;
 
 	// TODO
 	/* Setup timer */
-	outb((inb(0x61) & ~0x02) | 0x01, 0x61);
-	outb(0xb0, 0x46);	// CH:2 LSB->MSB MODE:0
-	outb(TICKS & 0xff, 0x44);
-	outb(TICKS >> 8, 0x44);
+	outb(inb(0x60) | 0x81, 0x60);
+	outb(inb(0x02) & 0xFE, 0x02);	// Set PIC Master IMR M0 Mask Off 
+	outb(0x4E, 0x00);				// Set PIC Master OCW3 Enable IRR Read Polling
+	outb(0x30, 0x46);				// CH:0 LSB->MSB MODE:0
+	outb(TICKS & 0xff, 0x40);		// CH:0 LSB write
+	outb(TICKS >> 8, 0x40);		// CH:0 MSB write
 
 	asm __volatile__ ("rdtsc":"=a" (st_low),"=d" (st_high));
 
 	loops = 0;
 	do {
 		loops++;
-	} while ((inb(0x60) & 0x10) == 0);
+	} while ((inb(0x60) & 0x01) == 0 );	// CH:0 no output
 
 	asm __volatile__ (
 		"rdtsc\n\t" \
@@ -1264,15 +1266,23 @@ static int cpuspeed(void)
 
 	/* Make sure we have a credible result */
 	if (loops < 4 || end_low < 50000) {
-		hprint(7, 0, loops);
-		hprint(8, 0, end_low);
-		return(-1);
+		cprint(15, 20, "loops:");
+		hprint(15, 30, loops);
+		cprint(15, 40, "end_low:");
+		hprint(15, 50, end_low);
+		//return(-1);
 	}
 
 	if(tsc_invariable){ end_low = correct_tsc(end_low);	}
 
-	v->clks_msec = end_low/50;	
-	hprint(9, 0, v->clks_msec);
+	v->clks_msec = end_low/200;	
+/*
+	cprint(15, 60, "clks_msec:");
+	hprint(15, 70, v->clks_msec);
+
+loop:
+	goto loop;
+*/
 	return(v->clks_msec);
 }
 

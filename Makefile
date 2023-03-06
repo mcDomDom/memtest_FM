@@ -6,7 +6,7 @@
 #
 # Path for the floppy disk device
 #
-FDISK=/dev/fd0
+FDISK=/dev/fd1
 
 AS=as -32
 CC=gcc

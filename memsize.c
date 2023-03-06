@@ -448,16 +448,16 @@ fstart:
 	//v->msegs = 1;
 	//v->pmap[0].start = 0x0100;
 	//v->pmap[0].end = 0x0400;
-	/*
+/* Memory Map Dump
 	for (i=0; i<v->msegs; i++) {	
 		cprint(20+i,  0, "start");
 		hprint(20+i, 10, v->pmap[i].start);
 		cprint(20+i, 20, "end");
 		hprint(20+i, 30, v->pmap[i].end);
 	}
-	*/
-//loop_halt:
-//	goto loop_halt;
+loop_halt:
+	goto loop_halt;
+*/
 }
 
 /* check_ram - Determine if this address points to memory by checking
